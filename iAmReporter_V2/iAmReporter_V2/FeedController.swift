@@ -17,11 +17,18 @@ class FeedController: UICollectionViewController, UICollectionViewDelegateFlowLa
     var city = ""
     var page = 0
     var load = true
+    var refreshControl:UIRefreshControl!
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        fetchNews(newsCategory: newsCategory, city: city)
+        let memoryCapasity = 500 * 1024 * 1024
+        let diskCapasity = 500 * 1024 * 1024
+        let urlCache = URLCache(memoryCapacity: memoryCapasity, diskCapacity: diskCapasity, diskPath: "myDiskPath")
+        URLCache.shared = urlCache
+        
+        self.fetchNews(newsCategory: newsCategory, city: city)
         
         let titleView = UIImageView(image: UIImage(named: "logo"))
         titleView.frame = CGRect(x: view.frame.width/2, y: view.frame.height/2, width: 30, height: 30)
@@ -32,14 +39,18 @@ class FeedController: UICollectionViewController, UICollectionViewDelegateFlowLa
         collectionView?.alwaysBounceVertical = true
         collectionView?.register(NewsCell.self, forCellWithReuseIdentifier: cellID)
         
-//        let refreshControl = UIRefreshControl()
-//        refreshControl.addTarget(self, action: #selector(refresh), for: UIControlEvents.valueChanged)
-//        collectionView?.addSubview(refreshControl)
+        refreshControl = UIRefreshControl()
+        refreshControl.attributedTitle = NSAttributedString(string: "Идет обновление...")
+        refreshControl.addTarget(self, action: Selector(("refresh:")), for: UIControlEvents.valueChanged)
+        collectionView?.addSubview(refreshControl)
+        
+        
         
     }
     
     func refresh(sender:AnyObject) {
         self.collectionView?.reloadData()
+        self.refreshControl.endRefreshing()
     }
     
     func fetchNews(newsCategory: String, city: String) {
@@ -57,22 +68,23 @@ class FeedController: UICollectionViewController, UICollectionViewDelegateFlowLa
             }
             do {
                 let json = try JSONSerialization.jsonObject(with: data!, options: .mutableContainers) as! NSDictionary
-                if let postArray = json["news"] as? [[String: AnyObject]] {
-                    for dictionary in postArray {
-                        let post = Post()
-                        post.setValuesForKeys(dictionary)
-                        self.posts.append(post)
-                    }
-                    DispatchQueue.main.async(execute: { 
-                        self.collectionView?.reloadData()
-                    })
-                }
                 
                 if let didLoad = json["available"] as? Int {
                     if didLoad == 1 {
                         self.page += 1
                     } else {
                         self.load = false
+                    }
+                }
+                
+                if let postArray = json["news"] as? [[String: AnyObject]] {
+                    for dictionary in postArray {
+                        let post = Post()
+                        post.setValuesForKeys(dictionary)
+                        self.posts.append(post)
+                    }
+                    DispatchQueue.main.async {
+                        self.collectionView?.reloadData()
                     }
                 }
                 
@@ -91,6 +103,11 @@ class FeedController: UICollectionViewController, UICollectionViewDelegateFlowLa
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let newsCell = collectionView.dequeueReusableCell(withReuseIdentifier: cellID, for: indexPath) as! NewsCell
         newsCell.post = posts[indexPath.item]
+        if indexPath.item == posts.count - 1 {
+            if load {
+                fetchNews(newsCategory: newsCategory, city: city)
+            }
+        }
         return newsCell
     }
     
@@ -102,30 +119,6 @@ class FeedController: UICollectionViewController, UICollectionViewDelegateFlowLa
         return 1.5
     }
     
-    override func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        let currentOffset = scrollView.contentOffset.y
-        let maximumOffset = scrollView.contentSize.height - scrollView.frame.size.height
-        let deltaOffset = maximumOffset - currentOffset
-
-        if deltaOffset <= 0 {
-            if load {
-                DispatchQueue.main.async(execute: {
-                    self.fetchNews(newsCategory: self.newsCategory, city: self.city)
-                })
-            }
-//            collectionView?.reloadData()
-        }
-    }
-    
-//    func scrollViewDidScroll(scrollView: UIScrollView) {
-//        let offsetY = scrollView.contentOffset.y
-//        let contentHeight = scrollView.contentSize.height
-//        
-//        if offsetY < contentHeight - scrollView.frame.size.height {
-//            print("asdasd")
-//        }
-//    }
-
     
 }
 

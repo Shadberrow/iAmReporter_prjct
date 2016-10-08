@@ -16,9 +16,9 @@ class NewsCell: UICollectionViewCell {
         didSet {
             
             smallPhotoUrl.image = nil
+            self.loader.startAnimating()
             
             if let imageURL = post?.smallPhotoURL {
-                
                 let encode = imageURL.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) // encode url string
                 let url = URL(string: encode!)
                 
@@ -34,21 +34,14 @@ class NewsCell: UICollectionViewCell {
                         let image = UIImage(data: data!)
                         imageCache.setObject(image!, forKey: imageURL as AnyObject)
                         
-                        DispatchQueue.main.async(execute: {
+                        DispatchQueue.main.async {
                             self.smallPhotoUrl.image = image
-                        })
+                            self.loader.stopAnimating()
+                        }
+                        
                         
                     }).resume()
                 }
-                
-                
-//                if let image = imageCache.object(forKey: encode! as AnyObject) {
-//                    smallPhotoUrl.image = image as? UIImage
-//                } else {
-//                    let image = UIImage(data: try! Data(contentsOf: URL(string: encode!)!))
-//                    imageCache.setObject(image!, forKey: encode! as AnyObject)
-//                    smallPhotoUrl.image = image
-//                }
             }
             
             if let views = post?.countViews {
@@ -88,7 +81,7 @@ class NewsCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
+        self.loader.startAnimating()
         setupCell()
     }
     
@@ -154,6 +147,17 @@ class NewsCell: UICollectionViewCell {
         addConstraintsWithFormat("V:|[v0(40)][v1]|", views: theme, text)
         
         
+    }
+    
+    let loader = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
+    
+    func setupStatusImageViewLoader() {
+        loader.hidesWhenStopped = true
+        loader.startAnimating()
+        loader.color = UIColor.black
+        smallPhotoUrl.addSubview(loader)
+        smallPhotoUrl.addConstraintsWithFormat("H:|[v0(10)]|", views: loader)
+        smallPhotoUrl.addConstraintsWithFormat("V:|[v0(10)]|", views: loader)
     }
     
 }
