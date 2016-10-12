@@ -105,7 +105,7 @@ class NewsCell: BaseCell {
     
     let countViews: UILabel = {
         let views = UILabel()
-        views.font = UIFont(name: "HelveticaNeue-Light", size: 8)
+        views.font = UIFont(name: "HelveticaNeue-Light", size: 9)
 //        views.backgroundColor = UIColor.gray
         return views
     }()
@@ -113,15 +113,17 @@ class NewsCell: BaseCell {
     let date: UILabel = {
         let date = UILabel()
         date.textAlignment = .right
-        date.font = UIFont(name: "HelveticaNeue-Light", size: 8)
+        date.font = UIFont(name: "HelveticaNeue-Light", size: 9)
 //        date.backgroundColor = UIColor.orange
         return date
     }()
     
-    var theme: UILabel = {
-        let theme = UILabel()
+    var theme: InsetLabel = {
+        let theme = InsetLabel()
         theme.numberOfLines = 2
-        theme.font = UIFont.boldSystemFont(ofSize: 17)
+//        theme.drawText(in: CGRect(x: 0, y: 0, width: 0, height: 0))
+        theme.textAlignment = .natural
+        theme.font = UIFont(name: "HelveticaNeue-Light", size: 18)
 //        theme.backgroundColor = UIColor.blue
         return theme
     }()
@@ -129,7 +131,8 @@ class NewsCell: BaseCell {
     var text: UILabel = {
         let text = UILabel()
         text.numberOfLines = 4
-        text.font = UIFont.boldSystemFont(ofSize: 17)
+        text.textAlignment = .natural
+        text.font = UIFont(name: "HelveticaNeue-Light", size: 15)
 //        text.backgroundColor = UIColor.red
         return text
     }()
@@ -166,7 +169,7 @@ class NewsCell: BaseCell {
         
         addConstraint(NSLayoutConstraint(item: theme, attribute: .top, relatedBy: .equal, toItem: smallPhotoUrl, attribute: .top, multiplier: 1, constant: 0))
         
-        addConstraintsWithFormat("V:[v0(40)]", views: theme)
+        addConstraintsWithFormat("V:[v0(45)]", views: theme)
         
         addConstraint(NSLayoutConstraint(item: text, attribute: .top, relatedBy: .equal, toItem: theme, attribute: .bottom, multiplier: 1, constant: 3))
         addConstraint(NSLayoutConstraint(item: text, attribute: .left, relatedBy: .equal, toItem: smallPhotoUrl, attribute: .right, multiplier: 1, constant: 8))
